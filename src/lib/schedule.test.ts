@@ -6,6 +6,7 @@ import { occurrences, overrideId, totals, type Clock, type Data } from './schedu
 import { learnState, versionFromLearning } from './learn';
 import { SCHOOL_JOB } from '../data/seed';
 import type { Entry, Job } from './types';
+import { jobFromDb, jobToDb } from '../data/codec';
 
 const clock = (today: string, minutes = 23 * 60): Clock => ({ today, minutes });
 const data = (over: Partial<Data> = {}): Data => ({ jobs: [SCHOOL_JOB], overrides: [], entries: [], pauses: [], ...over });
@@ -167,5 +168,19 @@ describe('learning', () => {
     const learned = { ...job, versions: [v] };
     const occ = occurrences(data({ jobs: [learned] }), { from: '2026-11-09', to: '2026-11-22' }, clock('2027-01-01'));
     expect(occ.map((o) => o.date + o.label)).toEqual(['2026-11-11Y', '2026-11-17X']);
+  });
+});
+
+describe('storage', () => {
+  const hasNestedArray = (v: unknown, inArray = false): boolean =>
+    Array.isArray(v)
+      ? inArray || v.some((x) => hasNestedArray(x, true))
+      : v !== null && typeof v === 'object' && Object.values(v).some((x) => hasNestedArray(x, false));
+
+  it('stores jobs without nested arrays (Firestore rejects them) and reads them back', () => {
+    expect(hasNestedArray(SCHOOL_JOB)).toBe(true);
+    const stored = jobToDb(SCHOOL_JOB);
+    expect(hasNestedArray(stored)).toBe(false);
+    expect(jobFromDb(stored)).toEqual(SCHOOL_JOB);
   });
 });

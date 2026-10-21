@@ -5,12 +5,14 @@ import { auth, db } from '../firebase';
 import { nowMinutes, todayStr } from '../lib/dates';
 import type { Clock, Data } from '../lib/schedule';
 import { DEFAULT_SETTINGS, type Entry, type Job, type Override, type Pause, type Settings } from '../lib/types';
+import { jobFromDb, jobToDb, type StoredJob } from './codec';
 import { SCHOOL_JOB } from './seed';
 
 interface Store extends Data {
   user: User | null;
   authReady: boolean;
   loaded: boolean;
+  loadError: string;
   settings: Settings;
   clock: Clock;
   saveSettings(patch: Partial<Settings>): void;
@@ -67,6 +69,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [overrides, setOverrides] = useState<Override[]>([]);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [pauses, setPauses] = useState<Pause[]>([]);
+  const [loadError, setLoadError] = useState('');
   const clock = useClock();
 
   useEffect(() => {
@@ -90,30 +93,54 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return;
     }
     setSettings(null);
+    setLoadError('');
     setJobs([]);
     setOverrides([]);
     setEntries([]);
     setPauses([]);
     if (!user) return;
     const root = doc(db, 'users', user.uid);
+    const onError = (err: { code?: string }) => {
+      console.error('sync failed', err);
+      setLoadError(err.code ?? 'unknown');
+    };
+    let seeded = false;
     const unsubs = [
-      onSnapshot(root, (snap) => {
-        if (snap.exists()) {
-          setSettings({ ...DEFAULT_SETTINGS, ...(snap.data() as Partial<Settings>) });
-        } else if (!snap.metadata.fromCache) {
-          // Brand new account (confirmed by the server): start with the school timetable.
-          const batch = writeBatch(db);
-          batch.set(root, { ...DEFAULT_SETTINGS, createdAt: Date.now() });
-          batch.set(doc(root, 'jobs', SCHOOL_JOB.id), { ...SCHOOL_JOB, createdAt: Date.now() });
-          fire(batch.commit());
-        }
-      }),
-      onSnapshot(collection(root, 'jobs'), (s) =>
-        setJobs(s.docs.map((d) => d.data() as Job).sort((a, b) => a.order - b.order || a.createdAt - b.createdAt)),
+      // Metadata changes are needed: for a new account the cached answer and
+      // the server answer are both "no document", and only the metadata differs.
+      onSnapshot(
+        root,
+        { includeMetadataChanges: true },
+        (snap) => {
+          if (snap.exists()) {
+            setSettings({ ...DEFAULT_SETTINGS, ...(snap.data() as Partial<Settings>) });
+          } else if (!snap.metadata.fromCache && !seeded) {
+            // Brand new account (confirmed by the server): start with the school timetable.
+            seeded = true;
+            try {
+              const batch = writeBatch(db);
+              batch.set(root, { ...DEFAULT_SETTINGS, createdAt: Date.now() });
+              batch.set(doc(root, 'jobs', SCHOOL_JOB.id), jobToDb({ ...SCHOOL_JOB, createdAt: Date.now() }));
+              batch.commit().catch(onError);
+            } catch (err) {
+              // Errors thrown inside a snapshot callback are swallowed; surface them.
+              onError(err as { code?: string });
+            }
+          }
+        },
+        onError,
       ),
-      onSnapshot(collection(root, 'overrides'), (s) => setOverrides(s.docs.map((d) => d.data() as Override))),
-      onSnapshot(collection(root, 'entries'), (s) => setEntries(s.docs.map((d) => d.data() as Entry))),
-      onSnapshot(collection(root, 'pauses'), (s) => setPauses(s.docs.map((d) => d.data() as Pause))),
+      onSnapshot(
+        collection(root, 'jobs'),
+        (s) =>
+          setJobs(
+            s.docs.map((d) => jobFromDb(d.data() as StoredJob)).sort((a, b) => a.order - b.order || a.createdAt - b.createdAt),
+          ),
+        onError,
+      ),
+      onSnapshot(collection(root, 'overrides'), (s) => setOverrides(s.docs.map((d) => d.data() as Override)), onError),
+      onSnapshot(collection(root, 'entries'), (s) => setEntries(s.docs.map((d) => d.data() as Entry)), onError),
+      onSnapshot(collection(root, 'pauses'), (s) => setPauses(s.docs.map((d) => d.data() as Pause)), onError),
     ];
     return () => unsubs.forEach((u) => u());
   }, [user]);
@@ -137,6 +164,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       user,
       authReady,
       loaded: settings !== null,
+      loadError,
       settings: settings ?? DEFAULT_SETTINGS,
       jobs,
       overrides,
@@ -145,7 +173,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       clock,
       saveSettings: (patch) =>
         DEMO ? setSettings((x) => ({ ...(x ?? DEFAULT_SETTINGS), ...patch })) : fire(setDoc(root(), patch, { merge: true })),
-      saveJob: (job) => put('jobs', job.id, job),
+      saveJob: (job) => put('jobs', job.id, DEMO ? job : jobToDb(job)),
       deleteJob: (id) => {
         if (DEMO) return del('jobs', id);
         const batch = writeBatch(db);
@@ -162,7 +190,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deletePause: (id) => del('pauses', id),
       importAll: async (data) => {
         const items: [string, { id: string }][] = [
-          ...(data.jobs ?? []).map((x) => ['jobs', x] as [string, { id: string }]),
+          ...(data.jobs ?? []).map((x) => ['jobs', jobToDb(jobFromDb(x as unknown as StoredJob))] as [string, { id: string }]),
           ...(data.overrides ?? []).map((x) => ['overrides', x] as [string, { id: string }]),
           ...(data.entries ?? []).map((x) => ['entries', x] as [string, { id: string }]),
           ...(data.pauses ?? []).map((x) => ['pauses', x] as [string, { id: string }]),
@@ -176,7 +204,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (data.settings) fire(setDoc(root(), data.settings, { merge: true }));
       },
     };
-  }, [user, authReady, settings, jobs, overrides, entries, pauses, clock]);
+  }, [user, authReady, settings, jobs, overrides, entries, pauses, clock, loadError]);
 
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
 }

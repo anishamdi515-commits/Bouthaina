@@ -4,6 +4,8 @@ import { useLocal } from './lib/local';
 import type { ScheduleVersion } from './lib/types';
 import { isDarkSky, Sky, skyColors, type SkyScene } from './sky/Sky';
 import { seasonOf, useWeather, type Condition, type Season, type Weather } from './sky/weather';
+import { signOut } from 'firebase/auth';
+import { auth } from './firebase';
 import { Toaster, useBackLayer } from './components/ui';
 import { AuthScreen } from './screens/Auth';
 import { Home } from './screens/Home';
@@ -61,6 +63,7 @@ function Shell() {
 }
 
 function Loading({ slow }: { slow?: boolean }) {
+  const { loadError } = useStore();
   const [late, setLate] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setLate(true), 6000);
@@ -70,7 +73,24 @@ function Loading({ slow }: { slow?: boolean }) {
     <div className="loading">
       <div>
         <span className="flower">🌸</span>
-        {slow && late && <p>أول مرة على هذا الهاتف؟ تحتاجين الإنترنت لتحميل بياناتك.</p>}
+        {slow && loadError ? (
+          <div className="card" style={{ marginTop: 16 }}>
+            <p style={{ marginTop: 0 }}>تعذّر تحميل البيانات</p>
+            <p className="muted small" dir="ltr">
+              {loadError}
+            </p>
+            <div className="row">
+              <button className="btn" onClick={() => location.reload()}>
+                إعادة المحاولة
+              </button>
+              <button className="btn ghost" onClick={() => signOut(auth)}>
+                تسجيل الخروج
+              </button>
+            </div>
+          </div>
+        ) : (
+          slow && late && <p>أول مرة على هذا الهاتف؟ تحتاجين الإنترنت لتحميل بياناتك.</p>
+        )}
       </div>
     </div>
   );
