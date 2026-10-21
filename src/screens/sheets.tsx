@@ -45,7 +45,7 @@ export function OccurrenceSheet({ occ, onClose }: { occ: Occurrence; onClose: ()
   const restore = () => {
     if (entry) store.saveEntry({ ...entry, cancelled: false, reason: '' });
     else store.deleteOverride(occ.key);
-    toast('تم استرجاع الحصة 🌸');
+    toast('تم استرجاع الحصة');
     goBack();
   };
 
@@ -207,7 +207,7 @@ export function EntrySheet({
   const save = () => {
     if (!valid) return;
     store.saveEntry({ ...f, label: f.label.trim(), room: f.room.trim(), note: f.note.trim() });
-    toast(entry ? 'تم الحفظ' : 'تمت الإضافة 🌸');
+    toast(entry ? 'تم الحفظ' : 'تمت الإضافة');
     goBack();
   };
 

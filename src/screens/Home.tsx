@@ -11,6 +11,7 @@ import { occurrences, pauseFor, totals } from '../lib/schedule';
 import type { Entry, EntryKind, Job, Occurrence, Pause } from '../lib/types';
 import { CONDITION_LABEL, type Weather } from '../sky/weather';
 import { goBack, Icon, Sheet, toast } from '../components/ui';
+import { Mark } from '../components/marks';
 import { SessionItem } from './SessionItem';
 import { DaySheet, EntrySheet, OccurrenceSheet, PauseSheet } from './sheets';
 
@@ -83,7 +84,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
     const yesterday = addDays(clock.today, -1);
     if (p.from > yesterday) store.deletePause(p.id);
     else store.savePause({ ...p, to: yesterday });
-    toast('عاد العدّ للعمل 🌸');
+    toast('عاد العدّ للعمل');
   };
 
   // ------------------------------------------------------------ calendar cells
@@ -108,7 +109,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
 
       <div className="hello">
         <h1>
-          {greeting()} يا {settings.name} 🌸
+          {greeting()} يا {settings.name}
         </h1>
         <div className="sub">
           <span>{formatDate(clock.today, true)}</span>
@@ -136,7 +137,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
               onClick={() => setFilter(j.id)}
             >
               <span className="dot" />
-              {j.emoji} {j.name}
+              {j.name}
             </button>
           ))}
         </div>
@@ -144,7 +145,9 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
 
       {openPauses.map((p) => (
         <div className="card banner" key={p.id}>
-          <span className="emoji">⏸️</span>
+          <span className="ic">
+            <Icon.Pause />
+          </span>
           <div className="grow">
             <b>العدّ متوقف</b>
             <p>
@@ -152,50 +155,56 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
               {p.jobIds.length > 0 && ` · ${p.jobIds.map((id) => jobOf(id)?.name).join('، ')}`}
             </p>
           </div>
-          <button className="btn sm" onClick={() => resume(p)}>
-            استئناف
-          </button>
+          <div className="acts">
+            <button className="btn sm" onClick={() => resume(p)}>
+              استئناف
+            </button>
+          </div>
         </div>
       ))}
 
       {!geo && (
         <div className="card banner">
-          <span className="emoji">🌦️</span>
+          <span className="ic">
+            <Icon.Pin />
+          </span>
           <div className="grow">
-            <b>طقس مكانك الحقيقي</b>
-            <p>اسمحي بمعرفة موقعك ليتغيّر التطبيق مع المطر والشمس حيث أنتِ</p>
-            <div className="row" style={{ marginTop: 10 }}>
-              <button className="btn sm" onClick={() => setGeo('yes')}>
-                سماح
-              </button>
-              <button className="btn sm ghost" onClick={() => setGeo('no')}>
-                لاحقاً
-              </button>
-            </div>
+            <b>طقس مكانك</b>
+            <p>ليتغيّر التطبيق مع الطقس حيث أنتِ</p>
+          </div>
+          <div className="acts">
+            <button className="btn sm" onClick={() => setGeo('yes')}>
+              سماح
+            </button>
+            <button className="btn sm ghost" onClick={() => setGeo('no')}>
+              لا
+            </button>
           </div>
         </div>
       )}
 
       {!settings.salaryAsked && (
         <div className="card banner">
-          <span className="emoji">💰</span>
+          <span className="ic">
+            <Icon.Wallet />
+          </span>
           <div className="grow">
-            <b>هل تريدين حساب أجرك أيضاً؟</b>
-            <p>أدخلي سعر الساعة مرة واحدة، وسأحسب لكِ أجر كل شهر</p>
-            <div className="row" style={{ marginTop: 10 }}>
-              <button
-                className="btn sm"
-                onClick={() => {
-                  store.saveSettings({ salaryAsked: true, salaryEnabled: true });
-                  setOverlay({ kind: 'rates' });
-                }}
-              >
-                نعم
-              </button>
-              <button className="btn sm ghost" onClick={() => store.saveSettings({ salaryAsked: true })}>
-                لا شكراً
-              </button>
-            </div>
+            <b>حساب الأجر؟</b>
+            <p>بسعر الساعة، لكل شهر</p>
+          </div>
+          <div className="acts">
+            <button
+              className="btn sm"
+              onClick={() => {
+                store.saveSettings({ salaryAsked: true, salaryEnabled: true });
+                setOverlay({ kind: 'rates' });
+              }}
+            >
+              نعم
+            </button>
+            <button className="btn sm ghost" onClick={() => store.saveSettings({ salaryAsked: true })}>
+              لا
+            </button>
           </div>
         </div>
       )}
@@ -214,13 +223,11 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
               {hoursNumber(periodT.doneMin)}
               <small>ساعة</small>
             </div>
-            <div className="meta">
-              {formatRange(period)}
-              {periodT.upcomingMin > 0 && ` · متبقي ${formatHours(periodT.upcomingMin)}`}
-            </div>
+            <div className="meta">{formatRange(period)}</div>
             <div className="progress">
               <div style={{ width: `${pct(periodT.doneMin, periodT.doneMin + periodT.upcomingMin)}%` }} />
             </div>
+            {periodT.upcomingMin > 0 && <div className="meta">متبقي {formatHours(periodT.upcomingMin)}</div>}
           </div>
           <div className="stat year">
             <div className="label">السنة الدراسية</div>
@@ -234,11 +241,13 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
               </span>{' '}
               · {yearT.doneCount} حصة
             </div>
-            <div className="meta">
-              {yearT.cancelled > 0 && `${yearT.cancelled} ملغاة`}
-              {yearT.cancelled > 0 && yearT.extraMin > 0 && ' · '}
-              {yearT.extraMin > 0 && `تعويض ${formatHours(yearT.extraMin)}`}
-            </div>
+            {(yearT.cancelled > 0 || yearT.extraMin > 0) && (
+              <div className="meta">
+                {yearT.cancelled > 0 && `${yearT.cancelled} ملغاة`}
+                {yearT.cancelled > 0 && yearT.extraMin > 0 && ' · '}
+                {yearT.extraMin > 0 && `تعويض ${formatHours(yearT.extraMin)}`}
+              </div>
+            )}
           </div>
           {settings.salaryEnabled && (
             <button className="stat money" onClick={() => setOverlay({ kind: 'rates' })} style={{ textAlign: 'start' }}>
@@ -258,7 +267,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
                 {jobs.some((j) => !j.rate) && (
                   <>
                     <br />
-                    <span style={{ color: 'var(--rose-deep)' }}>أدخلي سعر الساعة ←</span>
+                    <span style={{ color: 'var(--accent-strong)' }}>أدخلي سعر الساعة</span>
                   </>
                 )}
               </div>
@@ -273,10 +282,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
           <span className="hint">{todayOccs.length > 0 ? `${todayOccs.length} حصة` : ''}</span>
         </div>
         {todayOccs.length === 0 ? (
-          <div className="empty">
-            <span className="big">☕</span>
-            لا حصص اليوم، استمتعي بيومك
-          </div>
+          <div className="empty">لا حصص اليوم</div>
         ) : (
           <div className="sessions">
             {todayOccs.map((o) => (
@@ -314,48 +320,41 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
             if (!d) return <div key={'x' + i} className="cal-day other" />;
             const occs = byDay.get(d) ?? [];
             const paused = shownJobs.some((j) => pauseFor(store.pauses, j.id, d));
-            const done = occs.filter((o) => o.status === 'done' || o.status === 'upcoming').reduce((s, o) => s + o.minutes, 0);
             const cls = ['cal-day'];
             if (d === clock.today) cls.push('today');
-            else if (paused) cls.push('paused');
+            if (paused) cls.push('paused');
             if (earliestStart && d < earliestStart) cls.push('before');
+            const dayJobs = [...new Set(occs.map((o) => o.jobId))];
             return (
               <button key={d} className={cls.join(' ')} onClick={() => setDay(d)}>
-                {parts(d).d}
-                <span className="cal-dots">
-                  {occs.slice(0, 6).map((o) => (
-                    <i key={o.key} className={o.status} style={{ ['--c' as string]: jobOf(o.jobId)?.color }} />
-                  ))}
-                </span>
-                {done > 0 && <span className="cal-hours">{hoursNumber(done)}س</span>}
+                <span className="num">{parts(d).d}</span>
+                <DayMark occs={occs} />
+                {jobs.length > 1 && dayJobs.length > 0 && (
+                  <span className="cal-jobs">
+                    {dayJobs.map((id) => (
+                      <i key={id} style={{ ['--c' as string]: jobOf(id)?.color }} />
+                    ))}
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
         <div className="legend">
           <span>
-            <i className="cal-dots">
-              <i style={{ ['--c' as string]: 'var(--rose)' }} />
-            </i>
-            تمّت
+            <Mark kind="done" /> تمّت
           </span>
           <span>
-            <i className="cal-dots">
-              <i className="upcoming" style={{ ['--c' as string]: 'var(--rose)' }} />
-            </i>
-            قادمة
+            <Mark kind="upcoming" /> قادمة
           </span>
           <span>
-            <i className="cal-dots">
-              <i className="cancelled" />
-            </i>
-            ملغاة
+            <Mark kind="cancelled" /> ملغاة
           </span>
           <span>
-            <i className="cal-dots">
-              <i className="holiday" />
-            </i>
-            عطلة
+            <Mark kind="holiday" /> عطلة
+          </span>
+          <span>
+            <Mark kind="makeup" /> تعويض
           </span>
         </div>
       </div>
@@ -418,6 +417,30 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
   );
 }
 
+/** The symbol under a day number: one clear mark plus the hours. */
+function DayMark({ occs }: { occs: Occurrence[] }) {
+  if (occs.length === 0) return null;
+  const counted = occs.filter((o) => o.status === 'done' || o.status === 'upcoming');
+  const doneMin = counted.filter((o) => o.status === 'done').reduce((s, o) => s + o.minutes, 0);
+  const upMin = counted.filter((o) => o.status === 'upcoming').reduce((s, o) => s + o.minutes, 0);
+  const cancelled = occs.some((o) => o.status === 'cancelled');
+  const extra = counted.some((o) => o.source === 'makeup' || o.source === 'extra');
+
+  if (counted.length === 0) {
+    return <Mark kind={occs.every((o) => o.status === 'holiday') ? 'holiday' : 'cancelled'} />;
+  }
+  const corner = cancelled ? 'cancelled' : extra ? 'makeup' : null;
+  return (
+    <>
+      <Mark kind={upMin > 0 && doneMin === 0 ? 'upcoming' : 'done'} />
+      <span className={'cal-hours' + (upMin > 0 && doneMin === 0 ? ' upcoming' : '')}>
+        {hoursNumber(doneMin + upMin)} س
+      </span>
+      {corner && <Mark kind={corner} className="cal-corner" />}
+    </>
+  );
+}
+
 function pct(a: number, b: number): number {
   return b <= 0 ? 0 : Math.round((a / b) * 100);
 }
@@ -437,24 +460,22 @@ function LearningCard({ job, onAdd }: { job: Job; onAdd: (date: DateStr) => void
   const accept = () => {
     const v = versionFromLearning(job, s);
     store.saveJob({ ...job, mode: 'schedule', versions: [...job.versions, v] });
-    toast(`سيتكرر جدول ${job.name} تلقائياً من ${formatDateShort(v.from)} 🌸`);
+    toast(`سيتكرر جدول ${job.name} تلقائياً من ${formatDateShort(v.from)}`);
   };
 
   if (s.cycle > 0 && dismissed !== String(s.weekStarts.length)) {
     return (
-      <div className="card banner" style={{ ['--c' as string]: job.color }}>
-        <span className="emoji">✨</span>
+      <div className="card banner stack">
+        <span className="ic">
+          <Icon.Spark />
+        </span>
         <div className="grow">
-          <b>
-            {job.emoji} فهمتُ طريقة عملك في «{job.name}»
-          </b>
+          <b>فهمتُ طريقة عملك في «{job.name}»</b>
           <p>
-            {s.cycle === 1
-              ? 'يبدو أن نفس الأسبوع يتكرر كل أسبوع.'
-              : `يبدو أن عملك يدور كل ${s.cycle} أسابيع (الأسبوع 1، 2${s.cycle > 2 ? '، …' : ''} ثم يعود).`}
-            {s.confirmations > 0 && ` تأكدتُ من ذلك ${s.confirmations} مرة.`} هل أعمّره تلقائياً من الآن؟
+            {s.cycle === 1 ? 'نفس الأسبوع يتكرر كل أسبوع.' : `عملك يدور كل ${s.cycle} أسابيع ثم يعود.`}
+            {s.confirmations > 0 && ` تأكدتُ ${s.confirmations} مرة.`} أعمّره تلقائياً؟
           </p>
-          <div className="row" style={{ marginTop: 10 }}>
+          <div className="acts">
             <button className="btn sm" onClick={accept}>
               نعم، كرّريه
             </button>
@@ -469,18 +490,22 @@ function LearningCard({ job, onAdd }: { job: Job; onAdd: (date: DateStr) => void
 
   return (
     <div className="card banner">
-      <span className="emoji">📝</span>
+      <span className="ic">
+        <Icon.Pencil />
+      </span>
       <div className="grow">
         <b>
-          {job.emoji} {job.name}: الأسبوع {weekNo}
+          {job.name}: الأسبوع {weekNo}
         </b>
         <p>
           {s.weekStarts.length === 0
-            ? 'عمّري حصص أسبوعك الأول بالضغط على الأيام في الروزنامة، وبعدها أتعلّم وأكرر وحدي.'
-            : 'واصلي تعمير هذا الأسبوع، وعندما أفهم الدورة سأقترح التكرار التلقائي.'}
+            ? 'أضيفي حصص أسبوعك الأول، وبعدها أكرّرها وحدي.'
+            : 'واصلي التعمير، وسأقترح التكرار عندما أفهم الدورة.'}
         </p>
-        <button className="btn sm soft" style={{ marginTop: 10 }} onClick={() => onAdd(store.clock.today)}>
-          + إضافة حصة
+      </div>
+      <div className="acts">
+        <button className="btn sm soft" onClick={() => onAdd(store.clock.today)}>
+          + حصة
         </button>
       </div>
     </div>
@@ -503,7 +528,7 @@ function RatesSheet({ onClose }: { onClose: () => void }) {
       if (rate !== j.rate) store.saveJob({ ...j, rate });
     }
     store.saveSettings({ currency: currency.trim() || 'د.ت', salaryEnabled: true });
-    toast('تم الحفظ 💰');
+    toast('تم الحفظ');
     goBack();
   };
 
@@ -513,9 +538,7 @@ function RatesSheet({ onClose }: { onClose: () => void }) {
       <div className="sheet-sub">لكل عمل سعره الخاص · يمكن تغييره لاحقاً من الإعدادات</div>
       {store.jobs.map((j) => (
         <label className="field" key={j.id}>
-          <span>
-            {j.emoji} {j.name}
-          </span>
+          <span>{j.name}</span>
           <input
             className="input"
             inputMode="decimal"

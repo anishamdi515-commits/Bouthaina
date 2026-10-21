@@ -183,8 +183,8 @@ type Block =
   | { t: 'row'; o: Occurrence; i: number }
   | { t: 'total'; job: Job; occs: Occurrence[] };
 
-function font(size: number, weight = 400, family = 'Tajawal') {
-  return `${weight} ${size}px "${family}", "Tajawal", sans-serif`;
+function font(size: number, weight = 400) {
+  return `${weight} ${size}px "IBM Plex Sans Arabic", sans-serif`;
 }
 
 function fit(ctx: CanvasRenderingContext2D, s: string, w: number): string {
@@ -232,7 +232,7 @@ export async function renderReport(args: {
     await Promise.all([
       document.fonts.load(font(12)),
       document.fonts.load(font(12, 700)),
-      document.fonts.load(font(20, 700, 'El Messiri')),
+      document.fonts.load(font(20, 600)),
     ]);
   } catch {
     /* fall back to system font */
@@ -269,13 +269,13 @@ export async function renderReport(args: {
 
   const drawCover = () => {
     const g = ctx.createLinearGradient(0, 0, PAGE_W, 0);
-    g.addColorStop(0, '#f9d3e0');
-    g.addColorStop(1, '#efe0f7');
+    g.addColorStop(0, '#f6ebf0');
+    g.addColorStop(1, '#f1eef6');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, PAGE_W, 112);
     ctx.fillStyle = INK;
-    ctx.font = font(24, 700, 'El Messiri');
-    text(ctx, `دفتر حصص ${settings.name} 🌸`, PAGE_W - M, 42);
+    ctx.font = font(22, 700);
+    text(ctx, `دفتر حصص ${settings.name}`, PAGE_W - M, 42);
     ctx.font = font(13, 500);
     ctx.fillStyle = SOFT;
     text(ctx, `${formatDate(range.from)} ← ${formatDate(range.to)}`, PAGE_W - M, 72);
@@ -329,7 +329,7 @@ export async function renderReport(args: {
       k.textBaseline = 'middle';
       k.direction = 'rtl';
       k.textAlign = 'right';
-      k.fillText(`بثينة 🌸 · أُنشئ يوم ${formatDate(today)}`, PAGE_W - M, PAGE_H - 20);
+      k.fillText(`بثينة · أُنشئ يوم ${formatDate(today)}`, PAGE_W - M, PAGE_H - 20);
       k.textAlign = 'left';
       k.fillText(`صفحة ${i + 1} من ${pages.length}`, M, PAGE_H - 20);
       k.restore();
@@ -362,7 +362,7 @@ export async function renderReport(args: {
       ctx.arc(PAGE_W - M - 5, y + 14, 5, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = INK;
-      ctx.font = font(15, 700, 'El Messiri');
+      ctx.font = font(14, 700);
       text(ctx, `${b.job.emoji} ${b.job.name}`, PAGE_W - M - 16, y + 14);
       y += 30;
     } else if (b.t === 'head') {

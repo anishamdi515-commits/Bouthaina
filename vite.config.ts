@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import pkg from './package.json' with { type: 'json' };
 
 // Published on GitHub Pages under /<repo>/ — override with BASE_PATH if needed.
-const base = process.env.BASE_PATH ?? '/bothaina/';
+const base = process.env.BASE_PATH ?? '/Bouthaina/';
 
 export default defineConfig({
   base,

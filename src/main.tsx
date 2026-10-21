@@ -1,12 +1,12 @@
 import { createRoot } from 'react-dom/client';
-import '@fontsource/tajawal/arabic-400.css';
-import '@fontsource/tajawal/arabic-500.css';
-import '@fontsource/tajawal/arabic-700.css';
-import '@fontsource/tajawal/latin-400.css';
-import '@fontsource/tajawal/latin-500.css';
-import '@fontsource/tajawal/latin-700.css';
-import '@fontsource/el-messiri/arabic-700.css';
-import '@fontsource/el-messiri/latin-700.css';
+import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
+import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
+import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
+import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
+import '@fontsource/ibm-plex-sans-arabic/latin-400.css';
+import '@fontsource/ibm-plex-sans-arabic/latin-500.css';
+import '@fontsource/ibm-plex-sans-arabic/latin-600.css';
+import '@fontsource/ibm-plex-sans-arabic/latin-700.css';
 import './styles.css';
 import App from './App';
 

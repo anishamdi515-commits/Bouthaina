@@ -61,7 +61,7 @@ export function AuthScreen() {
   return (
     <div className="auth">
       <div className="logo">
-        <span className="flower">🌸</span>
+        <img src={`${import.meta.env.BASE_URL}icons/icon-192.png`} alt="" />
         <h1>بثينة</h1>
         <p>دفتر حصصك، دائماً معك</p>
       </div>

@@ -1,7 +1,7 @@
 import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs';
 import fs from 'fs';
 const out = '/home/user/bothaina/public';
-const font = 'file:///home/user/bothaina/node_modules/@fontsource/el-messiri/files/el-messiri-arabic-700-normal.woff2';
+const font = 'file:///home/user/bothaina/node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-600-normal.woff2';
 
 function flower(size, cx, cy) {
   const petals = [];

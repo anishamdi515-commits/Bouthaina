@@ -56,7 +56,7 @@ export function ScheduleEditor({ jobId, versionId, draft }: { jobId: string; ver
   const save = () => {
     const others = job.versions.filter((x) => x.id !== v.id && x.from !== v.from);
     store.saveJob({ ...job, mode: 'schedule', versions: [...others, v].sort((a, b) => a.from.localeCompare(b.from)) });
-    toast('تم حفظ الجدول 🌸');
+    toast('تم حفظ الجدول');
     goBack();
   };
 

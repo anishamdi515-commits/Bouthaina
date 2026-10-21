@@ -1,8 +1,9 @@
 import { formatHours } from '../lib/dates';
 import type { Job, Occurrence } from '../lib/types';
+import { Mark, type MarkKind } from '../components/marks';
 
 const STATUS_LABEL = {
-  done: 'تمّت ✓',
+  done: 'تمّت',
   upcoming: 'قادمة',
   cancelled: 'ملغاة',
   holiday: 'عطلة',
@@ -21,7 +22,9 @@ export function SessionItem({
   showJob?: boolean;
   showDate?: string;
 }) {
-  const kindBadge = occ.source === 'makeup' ? 'تعويض' : occ.source === 'extra' ? 'إضافية' : '';
+  const isExtra = (occ.source === 'makeup' || occ.source === 'extra') && occ.status !== 'cancelled' && occ.status !== 'holiday';
+  const kind: MarkKind = isExtra ? (occ.source as MarkKind) : occ.status;
+  const label = isExtra ? (occ.source === 'makeup' ? 'تعويض' : 'إضافية') : STATUS_LABEL[occ.status];
   return (
     <button
       className={`session is-${occ.status}`}
@@ -43,21 +46,20 @@ export function SessionItem({
           <span>
             {' · '}
             {formatHours(occ.minutes)}
-            {showJob && job && ` · ${job.emoji} ${job.name}`}
+            {showJob && job && ` · ${job.name}`}
           </span>
         </span>
         {occ.reason && (
           <span className="reason" style={{ display: 'block' }}>
-            {occ.status === 'holiday' ? '🏖️' : '✕'} {occ.reason}
+            {occ.reason}
             {occ.note && ` — ${occ.note}`}
           </span>
         )}
       </span>
-      {kindBadge && occ.status !== 'cancelled' ? (
-        <span className={`badge ${occ.source}`}>{kindBadge}</span>
-      ) : (
-        <span className={`badge ${occ.status}`}>{STATUS_LABEL[occ.status]}</span>
-      )}
+      <span className={`badge ${kind}`}>
+        <Mark kind={kind} />
+        {label}
+      </span>
     </button>
   );
 }

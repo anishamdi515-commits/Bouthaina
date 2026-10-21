@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { Component, useEffect, useState, type ReactNode } from 'react';
 import { StoreProvider, useStore } from './data/store';
 import { useLocal } from './lib/local';
 import type { ScheduleVersion } from './lib/types';
@@ -55,7 +55,9 @@ function Shell() {
     <>
       <Sky scene={scene} animate={store.settings.animations} />
       <div className={'app' + (dark ? ' dark-sky' : '')} style={{ ['--sky-ink' as string]: dark ? '#fff6fb' : '#4b3048' }}>
-        {!store.authReady ? <Loading /> : !store.user ? <AuthScreen /> : !store.loaded ? <Loading slow /> : <Main weather={preview ? { ...weather, cond: scene.cond, isDay: scene.isDay, temp: scene.temp, live: true } : weather} />}
+        {!store.authReady ? <Loading /> : !store.user ? <AuthScreen /> : !store.loaded ? <Loading slow /> : <ErrorBoundary>
+            <Main weather={preview ? { ...weather, cond: scene.cond, isDay: scene.isDay, temp: scene.temp, live: true } : weather} />
+          </ErrorBoundary>}
       </div>
       <Toaster />
     </>
@@ -72,7 +74,7 @@ function Loading({ slow }: { slow?: boolean }) {
   return (
     <div className="loading">
       <div>
-        <span className="flower">🌸</span>
+        <span className="spinner" />
         {slow && loadError ? (
           <div className="card" style={{ marginTop: 16 }}>
             <p style={{ marginTop: 0 }}>تعذّر تحميل البيانات</p>
@@ -119,6 +121,35 @@ function Main({ weather }: { weather: Weather }) {
       ))}
     </>
   );
+}
+
+/** Shows what went wrong instead of a blank page, with a way back. */
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('screen crashed', error);
+  }
+
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="card" style={{ marginTop: 40 }}>
+        <h2 style={{ fontSize: 18 }}>حدث خطأ غير متوقع</h2>
+        <p className="muted small">بياناتك محفوظة. أرسلي صورة لهذه الرسالة إن تكرّرت.</p>
+        <p className="small" dir="ltr" style={{ color: 'var(--bad)', wordBreak: 'break-word' }}>
+          {this.state.error.message}
+        </p>
+        <button className="btn block" onClick={() => location.replace(location.pathname)}>
+          الرجوع إلى الرئيسية
+        </button>
+      </div>
+    );
+  }
 }
 
 function Page({ visible, onBack, children }: { visible: boolean; onBack: () => void; children: ReactNode }) {

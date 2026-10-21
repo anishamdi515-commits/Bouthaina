@@ -71,7 +71,7 @@ export function SettingsPage({ nav }: { nav: (r: Route) => void }) {
       if (data.app !== 'bothaina') throw new Error('bad file');
       if (!confirm('استرجاع هذه النسخة؟ ستُضاف بياناتها إلى بياناتك الحالية.')) return;
       await store.importAll(data);
-      toast('تم الاسترجاع 🌸');
+      toast('تم الاسترجاع');
     } catch {
       alert('هذا الملف ليس نسخة صالحة من تطبيق بثينة');
     }
@@ -282,7 +282,7 @@ export function SettingsPage({ nav }: { nav: (r: Route) => void }) {
       </Section>
 
       <p className="muted small" style={{ textAlign: 'center' }}>
-        بثينة 🌸 · الإصدار {__APP_VERSION__}
+        بثينة · الإصدار {__APP_VERSION__}
       </p>
     </>
   );
@@ -373,7 +373,7 @@ export function JobPage({ id, nav }: { id: string; nav: (r: Route, replace?: boo
         true,
       );
     } else {
-      toast('ابدئي بتعمير أسبوعك الأول من الروزنامة 🌸');
+      toast('ابدئي بتعمير أسبوعك الأول من الروزنامة');
       history.back();
     }
   };

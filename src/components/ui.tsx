@@ -135,4 +135,19 @@ export const Icon = {
   Back: svg(<path d="M5 12h14M13 5l7 7-7 7" />),
   Plus: svg(<path d="M12 5v14M5 12h14" />),
   Chevron: svg(<path d="M15 18l-6-6 6-6" />),
+  Pin: svg(
+    <>
+      <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" />
+      <circle cx="12" cy="9.5" r="2.5" />
+    </>,
+  ),
+  Wallet: svg(
+    <>
+      <rect x="3" y="6" width="18" height="13" rx="3" />
+      <path d="M16 12.5h2M3 10h18" />
+    </>,
+  ),
+  Pause: svg(<path d="M9 6v12M15 6v12" />),
+  Spark: svg(<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6" />),
+  Pencil: svg(<path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4" />),
 };
