@@ -342,8 +342,8 @@ h3 {
 }
 
 .mark.holiday {
-  background: var(--off-soft);
-  color: var(--off);
+  background: #e6e1e4;
+  color: #6f666e;
 }
 
 .mark.makeup {
@@ -622,11 +622,19 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 14px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f7f3f5;
   font-size: 12.5px;
   color: var(--ink-soft);
+}
+
+.legend b {
+  width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 .legend span {

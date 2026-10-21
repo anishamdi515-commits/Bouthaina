@@ -341,6 +341,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
           })}
         </div>
         <div className="legend">
+          <b>معاني الرموز</b>
           <span>
             <Mark kind="done" /> تمّت
           </span>

@@ -103,7 +103,11 @@ function Main({ weather }: { weather: Weather }) {
   const nav = (r: Route, replace = false) => setStack((s) => (replace ? [...s.slice(0, -1), r] : [...s, r]));
   const top = stack[stack.length - 1];
 
-  useEffect(() => window.scrollTo(0, 0), [stack.length, top]);
+  // Braces matter: newer browsers return a Promise from scrollTo, and React
+  // would try to call a returned value as the effect's cleanup.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [stack.length, top]);
 
   return (
     <>
