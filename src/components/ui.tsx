@@ -147,6 +147,12 @@ export const Icon = {
       <path d="M16 12.5h2M3 10h18" />
     </>,
   ),
+  Key: svg(
+    <>
+      <circle cx="8" cy="15" r="4" />
+      <path d="M11 12l9-9M17 6l3 3M15 8l2 2" />
+    </>,
+  ),
   Pause: svg(<path d="M9 6v12M15 6v12" />),
   Spark: svg(<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6" />),
   Pencil: svg(<path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4" />),

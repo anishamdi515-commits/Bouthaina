@@ -1059,6 +1059,30 @@ input[type='date'].input {
   margin-top: 8px;
 }
 
+/* ---------------------------------------------------------------- recovery code */
+
+.code-box {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 16px 8px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  margin-bottom: 12px;
+  user-select: all;
+  -webkit-user-select: all;
+  font-variant-numeric: tabular-nums;
+}
+
+.code-input {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
 /* ---------------------------------------------------------------- auth */
 
 .pw {

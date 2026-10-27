@@ -6,6 +6,7 @@ import { ENTRY_KIND_LABEL, type Entry, type EntryKind, type Job, type Occurrence
 import { uid } from '../lib/uid';
 import { goBack, Sheet, Switch, toast } from '../components/ui';
 import { SessionItem } from './SessionItem';
+import { formatCode } from '../lib/recovery';
 
 // ---------------------------------------------------------------- one session
 
@@ -452,6 +453,63 @@ export function DaySheet({
           🏖️ عطلة
         </button>
       </div>
+    </Sheet>
+  );
+}
+
+// ---------------------------------------------------------------- recovery code
+
+export function RecoverySheet({ code, onClose }: { code: string; onClose: () => void }) {
+  const store = useStore();
+  const pretty = formatCode(code);
+  const link = location.origin + import.meta.env.BASE_URL;
+  const text = `رمز استرجاع تطبيق بثينة: ${pretty}\n${link}`;
+
+  const share = async () => {
+    if (navigator.share) {
+      await navigator.share({ text }).catch(() => undefined);
+    } else {
+      await copy();
+    }
+  };
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(pretty);
+      toast('تم نسخ الرمز');
+    } catch {
+      toast('انسخي الرمز يدوياً');
+    }
+  };
+
+  const saved = () => {
+    store.saveSettings({ recoverySaved: true });
+    goBack();
+  };
+
+  return (
+    <Sheet onClose={onClose}>
+      <h2>رمز الاسترجاع</h2>
+      <div className="sheet-sub">
+        هذا هو مفتاح بياناتك. إذا ضاع الهاتف أو غيّرتِه، تكتبينه في التطبيق على الهاتف الجديد فترجع كل حصصك.
+      </div>
+      <div className="code-box" dir="ltr">
+        {pretty}
+      </div>
+      <p className="muted small">
+        أرسليه لنفسك على واتساب، أو احفظيه في الملاحظات، أو أعطيه لشخص تثقين به. لا تحتاجينه في الاستعمال اليومي.
+      </p>
+      <div className="row" style={{ marginBottom: 10 }}>
+        <button className="btn soft" onClick={share}>
+          إرسال / مشاركة
+        </button>
+        <button className="btn soft" onClick={copy}>
+          نسخ
+        </button>
+      </div>
+      <button className="btn block" onClick={saved}>
+        حفظتُه ✓
+      </button>
     </Sheet>
   );
 }

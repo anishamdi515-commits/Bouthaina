@@ -13,13 +13,15 @@ import { CONDITION_LABEL, type Weather } from '../sky/weather';
 import { goBack, Icon, Sheet, toast } from '../components/ui';
 import { Mark } from '../components/marks';
 import { SessionItem } from './SessionItem';
-import { DaySheet, EntrySheet, OccurrenceSheet, PauseSheet } from './sheets';
+import { DaySheet, EntrySheet, OccurrenceSheet, PauseSheet, RecoverySheet } from './sheets';
+import { codeOf } from '../lib/recovery';
 
 type Overlay =
   | { kind: 'occ'; occ: Occurrence }
   | { kind: 'entry'; entry?: Entry; date?: DateStr; jobId?: string; entryKind?: EntryKind }
   | { kind: 'pause'; pause?: Pause; from?: DateStr }
-  | { kind: 'rates' };
+  | { kind: 'rates' }
+  | { kind: 'recovery' };
 
 const WEATHER_ICON: Record<string, string> = {
   clear: '☀️', clouds: '⛅', rain: '🌧️', storm: '⛈️', snow: '❄️', fog: '🌫️',
@@ -76,6 +78,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
   const extras = all.filter((o) => (o.source === 'makeup' || o.source === 'extra') && o.date >= month.from && o.date <= month.to);
   const extrasMin = extras.filter((o) => o.status === 'done' || o.status === 'upcoming').reduce((s, o) => s + o.minutes, 0);
 
+  const recoveryCode = codeOf(store.user?.email);
   const openPauses = store.pauses.filter((p) => !p.to && p.from <= clock.today);
   const earliestStart = shownJobs.reduce<DateStr | null>((m, j) => (!m || j.startDate < m ? j.startDate : m), null);
   const jobOf = (id: string) => jobs.find((j) => j.id === id);
@@ -140,6 +143,23 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
               {j.name}
             </button>
           ))}
+        </div>
+      )}
+
+      {recoveryCode && !settings.recoverySaved && (
+        <div className="card banner">
+          <span className="ic">
+            <Icon.Key />
+          </span>
+          <div className="grow">
+            <b>احفظي رمز الاسترجاع</b>
+            <p>لترجع بياناتك إذا غيّرتِ الهاتف</p>
+          </div>
+          <div className="acts">
+            <button className="btn sm" onClick={() => setOverlay({ kind: 'recovery' })}>
+              عرض
+            </button>
+          </div>
         </div>
       )}
 
@@ -414,6 +434,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
       )}
       {overlay?.kind === 'pause' && <PauseSheet pause={overlay.pause} from={overlay.from} onClose={() => setOverlay(null)} />}
       {overlay?.kind === 'rates' && <RatesSheet onClose={() => setOverlay(null)} />}
+      {overlay?.kind === 'recovery' && recoveryCode && <RecoverySheet code={recoveryCode} onClose={() => setOverlay(null)} />}
     </>
   );
 }

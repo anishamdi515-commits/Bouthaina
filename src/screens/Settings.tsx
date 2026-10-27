@@ -7,7 +7,8 @@ import { useLocal } from '../lib/local';
 import type { Job } from '../lib/types';
 import { uid } from '../lib/uid';
 import { Icon, PageHead, Switch, toast } from '../components/ui';
-import { PauseSheet } from './sheets';
+import { PauseSheet, RecoverySheet } from './sheets';
+import { codeOf, formatCode } from '../lib/recovery';
 import type { Route } from '../App';
 
 export const JOB_COLORS = ['#e88aa8', '#b48ad8', '#7fb8e6', '#6fc2a5', '#f0a96b', '#e7c25c', '#d97a7a', '#9aa6d8'];
@@ -34,6 +35,8 @@ export function SettingsPage({ nav }: { nav: (r: Route) => void }) {
   const [geo, setGeo] = useLocal('b-geo');
   const [preview, setPreview] = useLocal('b-preview');
   const fileRef = useRef<HTMLInputElement>(null);
+  const [showCode, setShowCode] = useState(false);
+  const recoveryCode = codeOf(store.user?.email);
 
   const addReason = () => {
     const r = reason.trim();
@@ -258,28 +261,55 @@ export function SettingsPage({ nav }: { nav: (r: Route) => void }) {
       </Section>
 
       <Section title="الحساب">
-        <p style={{ marginTop: 0 }}>
-          <span className="muted small">مسجّلة باسم</span>
-          <br />
-          <b dir="ltr">{store.user?.email}</b>
-        </p>
-        <div className="row">
-          <button
-            className="btn soft"
-            onClick={() =>
-              store.user?.email &&
-              sendPasswordResetEmail(auth, store.user.email)
-                .then(() => toast('أرسلنا رابط تغيير كلمة السر إلى بريدك'))
-                .catch(() => toast('تعذّر الإرسال، تحققي من الإنترنت'))
-            }
-          >
-            تغيير كلمة السر
-          </button>
-          <button className="btn ghost" onClick={() => confirm('تسجيل الخروج؟') && signOut(auth)}>
-            تسجيل الخروج
-          </button>
-        </div>
+        {recoveryCode ? (
+          <>
+            <p className="muted small" style={{ marginTop: 0 }}>
+              رمز الاسترجاع: تحتاجينه فقط على هاتف جديد
+            </p>
+            <div className="code-box" dir="ltr">
+              {formatCode(recoveryCode)}
+            </div>
+            <div className="row">
+              <button className="btn soft" onClick={() => setShowCode(true)}>
+                إرسال / نسخ الرمز
+              </button>
+              <button
+                className="btn ghost"
+                onClick={() =>
+                  confirm('تسجيل الخروج؟ ستحتاجين رمز الاسترجاع للدخول من جديد. هل حفظتِه؟') && signOut(auth)
+                }
+              >
+                تسجيل الخروج
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p style={{ marginTop: 0 }}>
+              <span className="muted small">مسجّلة باسم</span>
+              <br />
+              <b dir="ltr">{store.user?.email}</b>
+            </p>
+            <div className="row">
+              <button
+                className="btn soft"
+                onClick={() =>
+                  store.user?.email &&
+                  sendPasswordResetEmail(auth, store.user.email)
+                    .then(() => toast('أرسلنا رابط تغيير كلمة السر إلى بريدك'))
+                    .catch(() => toast('تعذّر الإرسال، تحققي من الإنترنت'))
+                }
+              >
+                تغيير كلمة السر
+              </button>
+              <button className="btn ghost" onClick={() => confirm('تسجيل الخروج؟') && signOut(auth)}>
+                تسجيل الخروج
+              </button>
+            </div>
+          </>
+        )}
       </Section>
+      {showCode && recoveryCode && <RecoverySheet code={recoveryCode} onClose={() => setShowCode(false)} />}
 
       <p className="muted small" style={{ textAlign: 'center' }}>
         بثينة · الإصدار {__APP_VERSION__}

@@ -83,6 +83,7 @@ export interface Settings {
   currency: string;
   reasons: string[];
   animations: boolean;
+  recoverySaved: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -94,6 +95,7 @@ export const DEFAULT_SETTINGS: Settings = {
   currency: 'د.ت',
   reasons: ['غياب', 'مرض', 'عطلة', 'إضراب', 'امتحانات', 'اجتماع', 'رحلة مدرسية', 'إلغاء من الإدارة'],
   animations: true,
+  recoverySaved: false,
 };
 
 export type OccStatus = 'done' | 'upcoming' | 'cancelled' | 'holiday';

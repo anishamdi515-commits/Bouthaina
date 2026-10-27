@@ -8,6 +8,7 @@ import { SCHOOL_JOB } from '../data/seed';
 import type { Entry, Job } from './types';
 import { jobFromDb, jobToDb } from '../data/codec';
 import { normalizeEmail, passwordVariants, toLatinDigits } from './digits';
+import { cleanCode, codeEmail, codeOf, formatCode, isValidCode, newCode } from './recovery';
 
 const clock = (today: string, minutes = 23 * 60): Clock => ({ today, minutes });
 const data = (over: Partial<Data> = {}): Data => ({ jobs: [SCHOOL_JOB], overrides: [], entries: [], pauses: [], ...over });
@@ -194,5 +195,24 @@ describe('login input', () => {
     expect(passwordVariants('abc123')).toEqual(['abc123', 'abc١٢٣']);
     expect(passwordVariants('abcdef')).toEqual(['abcdef']);
     expect(normalizeEmail('  Bothaina٢٠@Gmail.com ')).toBe('bothaina20@gmail.com');
+  });
+});
+
+describe('recovery codes', () => {
+  it('generates valid, unique codes and reads them back from the account email', () => {
+    const codes = new Set(Array.from({ length: 500 }, newCode));
+    expect(codes.size).toBe(500);
+    for (const c of codes) expect(isValidCode(c)).toBe(true);
+    const c = [...codes][0];
+    expect(codeOf(codeEmail(c))).toBe(c);
+    expect(codeOf('bothaina@gmail.com')).toBeNull();
+  });
+
+  it('accepts the code however it is typed', () => {
+    expect(formatCode('K7QM4XPT9HWN')).toBe('K7QM-4XPT-9HWN');
+    expect(cleanCode(' k7qm-4xpt 9hwn ')).toBe('K7QM4XPT9HWN');
+    expect(cleanCode('K٧QM-4XPT-٩HWN')).toBe('K7QM4XPT9HWN');
+    expect(isValidCode('K7QM4XPT9HW')).toBe(false);
+    expect(isValidCode('K7QM4XPT9HW0')).toBe(false);
   });
 });
