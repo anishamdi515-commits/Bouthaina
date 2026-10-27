@@ -6,6 +6,7 @@ import {
   type DateStr,
 } from '../lib/dates';
 import { learnState, versionFromLearning } from '../lib/learn';
+import { greeting } from '../lib/greeting';
 import { useLocal } from '../lib/local';
 import { occurrences, pauseFor, totals } from '../lib/schedule';
 import type { Entry, EntryKind, Job, Occurrence, Pause } from '../lib/types';
@@ -26,13 +27,6 @@ type Overlay =
 const WEATHER_ICON: Record<string, string> = {
   clear: '☀️', clouds: '⛅', rain: '🌧️', storm: '⛈️', snow: '❄️', fog: '🌫️',
 };
-
-function greeting(): string {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 12) return 'صباح الخير';
-  if (h >= 12 && h < 18) return 'مساء الخير';
-  return 'مساء النور';
-}
 
 export function Home({ weather, onSettings, onReport }: { weather: Weather; onSettings: () => void; onReport: () => void }) {
   const store = useStore();
@@ -112,7 +106,12 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
 
       <div className="hello">
         <h1>
-          {greeting()} يا {settings.name}
+          {greeting(
+            settings.name,
+            clock.today,
+            Math.floor(clock.minutes / 60),
+            todayOccs.map((o) => o.status),
+          )}
         </h1>
         <div className="sub">
           <span>{formatDate(clock.today, true)}</span>

@@ -7,6 +7,7 @@ import { learnState, versionFromLearning } from './learn';
 import { SCHOOL_JOB } from '../data/seed';
 import type { Entry, Job } from './types';
 import { jobFromDb, jobToDb } from '../data/codec';
+import { greeting } from './greeting';
 import { normalizeEmail, passwordVariants, toLatinDigits } from './digits';
 import { cleanCode, codeEmail, codeOf, formatCode, isValidCode, newCode } from './recovery';
 
@@ -214,5 +215,25 @@ describe('recovery codes', () => {
     expect(cleanCode('K٧QM-4XPT-٩HWN')).toBe('K7QM4XPT9HWN');
     expect(isValidCode('K7QM4XPT9HW')).toBe(false);
     expect(isValidCode('K7QM4XPT9HW0')).toBe(false);
+  });
+});
+
+describe('greeting', () => {
+  const g = (hour: number, st: Parameters<typeof greeting>[3], day = '2026-10-27') => greeting('بثينة', day, hour, st);
+  it('talks about her sessions when she has some today', () => {
+    expect(g(8, ['upcoming', 'upcoming'])).toBe('أمامك حصتان اليوم، بثينة');
+    expect(g(8, ['upcoming'])).toBe('أمامك حصة واحدة اليوم، بثينة');
+    expect(g(13, ['done', 'upcoming'])).toBe('بثينة، بقيت حصة واحدة');
+    expect(g(13, ['done', 'upcoming', 'upcoming', 'upcoming'])).toBe('بثينة، بقيت لكِ 3 حصص');
+    expect(g(18, ['done', 'done', 'cancelled'])).toContain('بثينة');
+  });
+  it('never uses the old fixed phrasing and stays the same all day', () => {
+    for (const h of [6, 13, 19, 23]) {
+      const line = g(h, []);
+      expect(line).toContain('بثينة');
+      expect(line).not.toMatch(/يا بثينة|صباح الخير|مساء الخير/);
+      expect(g(h, [])).toBe(line);
+    }
+    expect(g(10, ['holiday', 'holiday'])).toMatch(/عطلة|الأقسام/);
   });
 });
