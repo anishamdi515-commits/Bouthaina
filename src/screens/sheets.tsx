@@ -7,6 +7,9 @@ import { uid } from '../lib/uid';
 import { goBack, Sheet, Switch, toast } from '../components/ui';
 import { SessionItem } from './SessionItem';
 import { formatCode } from '../lib/recovery';
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { auth } from '../firebase';
+import { passwordVariants, toLatinDigits } from '../lib/digits';
 
 // ---------------------------------------------------------------- one session
 
@@ -510,6 +513,98 @@ export function RecoverySheet({ code, onClose }: { code: string; onClose: () => 
       <button className="btn block" onClick={saved}>
         حفظتُه ✓
       </button>
+    </Sheet>
+  );
+}
+
+// ---------------------------------------------------------------- change password (no email needed)
+
+export function PasswordSheet({ onClose }: { onClose: () => void }) {
+  const [pw, setPw] = useState('');
+  const [again, setAgain] = useState('');
+  const [current, setCurrent] = useState('');
+  const [needCurrent, setNeedCurrent] = useState(false);
+  const [show, setShow] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    const user = auth.currentUser;
+    if (!user?.email) return;
+    const next = toLatinDigits(pw);
+    if (next.length < 6) return setError('6 أحرف على الأقل');
+    if (next !== toLatinDigits(again)) return setError('كلمتا السر غير متطابقتين');
+    setError('');
+    setBusy(true);
+    try {
+      if (needCurrent) {
+        // Firebase asks for the old password when the last login is not recent.
+        let ok = false;
+        for (const p of passwordVariants(current)) {
+          try {
+            await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, p));
+            ok = true;
+            break;
+          } catch {
+            /* try the next digit form */
+          }
+        }
+        if (!ok) throw { code: 'auth/wrong-current' };
+      }
+      await updatePassword(user, next);
+      toast('تم تغيير كلمة السر');
+      goBack();
+    } catch (err) {
+      const code = (err as { code?: string }).code ?? '';
+      if (code === 'auth/requires-recent-login') {
+        setNeedCurrent(true);
+        setError('للأمان، اكتبي كلمة السر الحالية أيضاً');
+      } else if (code === 'auth/wrong-current') {
+        setError('كلمة السر الحالية غير صحيحة');
+      } else if (code === 'auth/weak-password') {
+        setError('كلمة السر ضعيفة، 6 أحرف على الأقل');
+      } else if (code === 'auth/network-request-failed') {
+        setError('لا يوجد اتصال بالإنترنت');
+      } else {
+        setError('تعذّر التغيير، حاولي مرة أخرى');
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const type = show ? 'text' : 'password';
+  return (
+    <Sheet onClose={onClose}>
+      <h2>تغيير كلمة السر</h2>
+      <div className="sheet-sub">مباشرة من هنا، بدون أي بريد أو رمز</div>
+      {error && <div className="error">{error}</div>}
+      {needCurrent && (
+        <label className="field">
+          <span>كلمة السر الحالية</span>
+          <input className="input" type={type} dir="ltr" autoComplete="current-password" autoCapitalize="none" autoCorrect="off" value={current} onChange={(e) => setCurrent(e.target.value)} />
+        </label>
+      )}
+      <label className="field">
+        <span>كلمة السر الجديدة</span>
+        <input className="input" type={type} dir="ltr" autoComplete="new-password" autoCapitalize="none" autoCorrect="off" value={pw} onChange={(e) => setPw(e.target.value)} />
+      </label>
+      <label className="field">
+        <span>أعيدي كتابتها</span>
+        <input className="input" type={type} dir="ltr" autoComplete="new-password" autoCapitalize="none" autoCorrect="off" value={again} onChange={(e) => setAgain(e.target.value)} />
+      </label>
+      <label className="row" style={{ justifyContent: 'flex-start', gap: 8, marginBottom: 14 }}>
+        <input type="checkbox" checked={show} onChange={(e) => setShow(e.target.checked)} style={{ flex: 'none', width: 18, height: 18 }} />
+        <span style={{ flex: 'none' }} className="small">إظهار كلمة السر</span>
+      </label>
+      <div className="sheet-actions">
+        <button className="btn ghost" onClick={goBack}>
+          إلغاء
+        </button>
+        <button className="btn" onClick={save} disabled={busy || !pw}>
+          {busy ? '…' : 'حفظ'}
+        </button>
+      </div>
     </Sheet>
   );
 }

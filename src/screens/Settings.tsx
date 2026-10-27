@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { sendPasswordResetEmail, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useStore } from '../data/store';
 import { formatDate, MONTHS, mondayOf, todayStr } from '../lib/dates';
@@ -7,7 +7,7 @@ import { useLocal } from '../lib/local';
 import type { Job } from '../lib/types';
 import { uid } from '../lib/uid';
 import { Icon, PageHead, Switch, toast } from '../components/ui';
-import { PauseSheet, RecoverySheet } from './sheets';
+import { PasswordSheet, PauseSheet, RecoverySheet } from './sheets';
 import { codeOf, formatCode } from '../lib/recovery';
 import type { Route } from '../App';
 
@@ -36,6 +36,7 @@ export function SettingsPage({ nav }: { nav: (r: Route) => void }) {
   const [preview, setPreview] = useLocal('b-preview');
   const fileRef = useRef<HTMLInputElement>(null);
   const [showCode, setShowCode] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const recoveryCode = codeOf(store.user?.email);
 
   const addReason = () => {
@@ -291,15 +292,7 @@ export function SettingsPage({ nav }: { nav: (r: Route) => void }) {
               <b dir="ltr">{store.user?.email}</b>
             </p>
             <div className="row">
-              <button
-                className="btn soft"
-                onClick={() =>
-                  store.user?.email &&
-                  sendPasswordResetEmail(auth, store.user.email)
-                    .then(() => toast('أرسلنا رابط تغيير كلمة السر إلى بريدك'))
-                    .catch(() => toast('تعذّر الإرسال، تحققي من الإنترنت'))
-                }
-              >
+              <button className="btn soft" onClick={() => setShowPassword(true)}>
                 تغيير كلمة السر
               </button>
               <button className="btn ghost" onClick={() => confirm('تسجيل الخروج؟') && signOut(auth)}>
@@ -310,6 +303,7 @@ export function SettingsPage({ nav }: { nav: (r: Route) => void }) {
         )}
       </Section>
       {showCode && recoveryCode && <RecoverySheet code={recoveryCode} onClose={() => setShowCode(false)} />}
+      {showPassword && <PasswordSheet onClose={() => setShowPassword(false)} />}
 
       <p className="muted small" style={{ textAlign: 'center' }}>
         بثينة · الإصدار {__APP_VERSION__}
