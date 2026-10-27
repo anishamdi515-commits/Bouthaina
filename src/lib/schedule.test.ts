@@ -7,6 +7,7 @@ import { learnState, versionFromLearning } from './learn';
 import { SCHOOL_JOB } from '../data/seed';
 import type { Entry, Job } from './types';
 import { jobFromDb, jobToDb } from '../data/codec';
+import { normalizeEmail, passwordVariants, toLatinDigits } from './digits';
 
 const clock = (today: string, minutes = 23 * 60): Clock => ({ today, minutes });
 const data = (over: Partial<Data> = {}): Data => ({ jobs: [SCHOOL_JOB], overrides: [], entries: [], pauses: [], ...over });
@@ -182,5 +183,16 @@ describe('storage', () => {
     const stored = jobToDb(SCHOOL_JOB);
     expect(hasNestedArray(stored)).toBe(false);
     expect(jobFromDb(stored)).toEqual(SCHOOL_JOB);
+  });
+});
+
+describe('login input', () => {
+  it('accepts Arabic-Indic digits typed on an Arabic keyboard', () => {
+    expect(toLatinDigits('بثينة١٢٣٤')).toBe('بثينة1234');
+    expect(toLatinDigits('۰۹')).toBe('09');
+    expect(passwordVariants('abc١٢٣')).toEqual(['abc١٢٣', 'abc123']);
+    expect(passwordVariants('abc123')).toEqual(['abc123', 'abc١٢٣']);
+    expect(passwordVariants('abcdef')).toEqual(['abcdef']);
+    expect(normalizeEmail('  Bothaina٢٠@Gmail.com ')).toBe('bothaina20@gmail.com');
   });
 });

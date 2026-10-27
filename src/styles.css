@@ -1061,13 +1061,34 @@ input[type='date'].input {
 
 /* ---------------------------------------------------------------- auth */
 
+.pw {
+  position: relative;
+}
+
+.pw .input {
+  padding-right: 48px;
+}
+
+.pw-eye {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 46px;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.pw-eye svg {
+  width: 20px;
+  height: 20px;
+}
+
 .auth {
-  min-height: 100vh;
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding-bottom: 40px;
+  padding: 36px 0 40px;
 }
 
 .auth .logo {
@@ -1090,7 +1111,11 @@ input[type='date'].input {
 
 .auth .logo p {
   margin: 2px 0 0;
-  opacity: 0.75;
+  opacity: 0.85;
+}
+
+.dark-sky .auth .logo {
+  text-shadow: 0 1px 10px rgba(20, 15, 40, 0.45);
 }
 
 .error {
