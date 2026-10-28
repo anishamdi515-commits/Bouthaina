@@ -145,6 +145,8 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
         </div>
       )}
 
+      <div className="home-grid">
+      <div className="g-banners">
       {recoveryCode && !settings.recoverySaved && (
         <div className="card banner">
           <span className="ic">
@@ -234,7 +236,8 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
           <LearningCard key={j.id} job={j} onAdd={(date) => setOverlay({ kind: 'entry', date, jobId: j.id, entryKind: 'regular' })} />
         ))}
 
-      <div className="card">
+      </div>
+      <div className="card g-stats">
         <div className="stats">
           <div className="stat">
             <div className="label">{sd === 1 ? 'هذا الشهر' : 'فترة الأجر'}</div>
@@ -295,7 +298,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
         </div>
       </div>
 
-      <div className="card">
+      <div className="card g-today">
         <div className="card-title">
           <h2>اليوم</h2>
           <span className="hint">{todayOccs.length > 0 ? `${todayOccs.length} حصة` : ''}</span>
@@ -317,7 +320,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
         )}
       </div>
 
-      <div className="card">
+      <div className="card g-cal">
         <div className="cal-head">
           <button className="cal-nav" onClick={() => moveMonth(-1)} aria-label="الشهر السابق">
             <Icon.Prev />
@@ -379,7 +382,7 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
         </div>
       </div>
 
-      <div className="card">
+      <div className="card g-extras">
         <div className="card-title">
           <h2>التعويضات والساعات الإضافية</h2>
           <span className="hint">{extrasMin > 0 && formatHours(extrasMin)}</span>
@@ -406,6 +409,8 @@ export function Home({ weather, onSettings, onReport }: { weather: Weather; onSe
         >
           + إضافة تعويض أو ساعة إضافية
         </button>
+      </div>
+
       </div>
 
       {day && (

@@ -158,5 +158,5 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 
 function Page({ visible, onBack, children }: { visible: boolean; onBack: () => void; children: ReactNode }) {
   useBackLayer(onBack);
-  return <div style={{ display: visible ? undefined : 'none' }}>{children}</div>;
+  return <div className="page" style={{ display: visible ? undefined : 'none' }}>{children}</div>;
 }

@@ -1222,3 +1222,121 @@ input[type='date'].input {
     transition: none !important;
   }
 }
+
+/* ---------------------------------------------------------------- layout */
+
+.home-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Laptop / tablet landscape: two columns, the calendar beside the rest. */
+@media (min-width: 900px) {
+  .app {
+    max-width: 1120px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .sky {
+    height: calc(340px + var(--safe-top));
+  }
+
+  .hello {
+    padding: 28px 4px 32px;
+  }
+
+  .hello h1 {
+    font-size: 32px;
+  }
+
+  .home-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    grid-template-areas:
+      'banners cal'
+      'stats cal'
+      'today cal'
+      'extras cal';
+    grid-template-rows: auto auto auto 1fr;
+    column-gap: 20px;
+    align-items: start;
+  }
+
+  .g-banners {
+    grid-area: banners;
+  }
+  .g-stats {
+    grid-area: stats;
+  }
+  .g-today {
+    grid-area: today;
+  }
+  .g-extras {
+    grid-area: extras;
+  }
+  .g-cal {
+    grid-area: cal;
+    position: sticky;
+    top: 16px;
+    padding: 22px;
+  }
+
+  .cal-day {
+    min-height: 82px;
+    padding-top: 8px;
+    gap: 5px;
+  }
+
+  .cal-day:hover {
+    background: var(--accent-soft);
+  }
+
+  .cal-day .num {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+
+  .cal-hours {
+    font-size: 12px;
+  }
+
+  .session:hover,
+  .list-item:hover {
+    background: #faf6f8;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  /* Sheets become centered dialogs instead of sliding from the bottom. */
+  .overlay {
+    align-items: center;
+  }
+
+  .sheet {
+    max-width: 520px;
+    border-radius: 22px;
+    max-height: 86vh;
+    animation-name: pop;
+  }
+
+  .sheet .grab {
+    display: none;
+  }
+
+  .auth {
+    max-width: 440px;
+    margin: 0 auto;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
